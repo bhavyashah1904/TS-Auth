@@ -1,0 +1,94 @@
+1) npm install -g typescript
+2) npx tsc --init - for tsconfig.json
+3) install dev dependencies
+npm install typescript ts-node-dev @types/express @types/config pino-pretty @types/nodemailer @types/lodash @types/jsonwebtoken -D
+4) install dependencies
+npm insatll mongoose @typegoose/typegoose config argon2 pino dayjs nanoid nodemailer lodash jsonwebtoken dotenv zod
+
+5)In Node.js, when you install packages using a package manager like Yarn or npm, you can categorize them into two main types: dependencies and devDependencies.
+
+Dependencies:
+
+Dependencies are the packages that your application needs to run in production. They include libraries, frameworks, and other modules that your application directly relies on during runtime.
+These packages are essential for your application to function properly when deployed in a production environment.
+Examples of dependencies might include database libraries (e.g., mongoose), utility libraries (e.g., lodash), authentication libraries (e.g., jsonwebtoken), and configuration libraries (e.g., config).
+DevDependencies:
+
+DevDependencies, short for development dependencies, are the packages that are only needed during the development phase of your application.
+These packages are typically used for tasks such as testing, linting, building, and development server setup.
+DevDependencies are not required for your application to run in production and are not included in the deployed package.
+Examples of devDependencies might include testing frameworks (e.g., Jest), TypeScript compilation tools (e.g., typescript), development server tools (e.g., ts-node-dev), type definitions for development (e.g., @types/express), and formatting tools (e.g., prettier).
+In your specific case:
+
+Dependencies (yarn add):
+These are packages that your application will directly use during runtime in a production environment.
+Examples include mongoose for database interaction, argon2 for password hashing, and nodemailer for sending emails.
+DevDependencies (yarn add --dev):
+These are packages that are only required during development and are not needed for your application to run in production.
+Examples include TypeScript (typescript) and its development server (ts-node-dev) for compiling and running TypeScript code during development, type definitions for Express (@types/express), and other type definitions for development purposes.
+By separating dependencies and devDependencies, you can keep your production environment lean and only include the necessary packages for running your application, while still having access to development tools and utilities during the development phase.
+
+6) "dev" : "ts-node-dev --respawn --transpile-only src/app.ts"
+This command is run when you start the app with yarn dev or nodemon. It watches all TypeScript files in the src directory and recompiles them whenever they change.
+
+7)npm install config
+Create a config folder and a default.ts file. You will need a production.ts file when you deploy your app.
+Config is going to expect a file for each of your environments plus default.
+
+8) DB connection
+create an dburi in the config
+connect to the mongoose db with the dburi in an utils file called connectToDb.ts
+create a logger.ts using pino
+
+9)model 
+for model we are going to use typegoose because from the user.model.ts we are going to export a TS interface as well as our model
+
+@prop is from typegoose in which we will put our mongoose options
+changes in tsconfig file
+set the experimentalDecorators to true
+set strictPropertyInitialization to false
+set emitDecoratorMetadata to true
+
+10) hash password
+We will argon2 which is like an alternative to something like bcrypt but more secure because there are bunch of supercomputers laying around reasy to crack bcrypt passwords
+
+11)Verify pass with hashed pass in the model
+
+12)create the user controller but first we need to create the user.schema for validating the requests when we create a user
+
+13)We will create a user.schema.ts middleware for validation,
+ import the anyZodObject interface from zod
+
+The AnyZodObject type in the Zod library is a special type that represents any Zod schema object. Zod is a TypeScript-first schema declaration and validation library. It allows you to define the shape and constraints of your data and provides robust validation mechanisms.
+
+When you use AnyZodObject, you're essentially saying that the schema parameter passed to a function can be any Zod schema object. This provides flexibility because it allows you to use different types of schemas for validation, depending on the specific requirements of your application.
+
+For example, you might have different Zod schemas for validating different types of data, such as user input, API requests, or database records. By using AnyZodObject, you can pass any of these schemas to the validation function without needing to specify the exact type in advance. This makes the validation function more versatile and reusable.
+
+add the middleware to the routes
+
+14)Now we need to implement the service layer for database communication and creating a user
+and after that call the createUser.ts function in the controller
+
+15)Email validation and verification 
+
+create the mailer.ts file - we are just going to use a simple smtp server - simple message transfer protocol
+but this is not recommended in production as this is a test server 
+
+16)verify the the verifiaction code received while creating a user
+create a verifyUserHandler and verifyUserSchema
+create a function in user.service.ts to find user by id
+complete the verifyUserHandler
+create a route for it
+
+17)Do the same for forgot password
+the forgotPassword Handler should be able to send an email with resetPasswordCode to the users registered email address
+
+18)Create resetPasswordHandler and resetPasswordSchema
+find user by email
+use the resetPasswordCode and save the new password
+
+19) authentication
+create a model for session 
+create a jwt.ts util file create two functions signJwt() and verifyJwt()
+create private keys and encode it to base64 save it in .env file
