@@ -127,3 +127,7 @@ export async function createUserHandler(
     
       return res.send("Successfully updated password");
     }
+
+    export async function getCurrentUserHandler(req: Request, res: Response) {
+      return res.send(res.locals.user);
+    }

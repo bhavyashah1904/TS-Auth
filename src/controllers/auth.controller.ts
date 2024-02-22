@@ -1,38 +1,76 @@
+import { DocumentType } from "@typegoose/typegoose";
 import { Request, Response } from "express";
-import { findUserByEmail } from "../service/user.service";
+import { get } from "lodash";
+import { User } from "../model/user.model";
 import { CreateSessionInput } from "../schema/auth.schema";
-import { signAccessToken, signRefreshToken } from "../service/auth.service";
-
+import {
+  findSessionById,
+  signAccessToken,
+  signRefreshToken,
+} from "../service/auth.service";
+import { findUserByEmail, findUserById } from "../service/user.service";
+import { verifyJwt } from "../utils/jwt";
 
 export async function createSessionHandler(
-    req : Request<{}, {}, CreateSessionInput>,
-    res : Response
-){
-    const {email, password} = req.body
-    const message = "Invalid email or password"
+  req: Request<{}, {}, CreateSessionInput>,
+  res: Response
+) {
+  const message = "Invalid email or password";
+  const { email, password } = req.body;
 
-    const user = await findUserByEmail({ email })
-    if(!user){
-        return res.send(message)
-    }
+  const user = await findUserByEmail(email);
 
-    if(!user.verified){
-        return res.send("Verify your email")
-    }
+  if (!user) {
+    return res.send(message);
+  }
 
-    const isValid = await user.validatePassword(password)
+  if (!user.verified) {
+    return res.send("Please verify your email");
+  }
 
-    if(!isValid){
-        return res.send(message)
-    }
+  const isValid = await user.validatePassword(password);
 
-    //sign a access token
-    const accessToken = signAccessToken(user)
+  if (!isValid) {
+    return res.send(message);
+  }
 
-    //sign a refresh token
-    const refreshToken = signRefreshToken({userId : user._id})
+  // sign a access token
+  const accessToken = signAccessToken(user);
+  // sign a refresh token
+  const refreshToken = await signRefreshToken({ userId: user._id.toString() }); //changed
 
-    //send tokens
-    return res.send({accessToken, refreshToken})
-}   
+  // send the tokens
+  return res.send({
+    accessToken,
+    refreshToken,
+  });
+}
 
+export async function refreshAccessTokenHandler(req: Request, res: Response) {
+  const refreshToken = get(req, "headers.x-refresh");
+
+  const decoded = verifyJwt<{ session: string }>(
+    refreshToken as string, //changed
+    "refreshTokenPublicKey"
+  );
+
+  if (!decoded) {
+    return res.status(401).send("Could not refresh access token");
+  }
+
+  const session = await findSessionById(decoded.session);
+
+  if (!session || !session.valid) {
+    return res.status(401).send("Could not refresh access token");
+  }
+
+  const user = await findUserById(String(session.user));
+
+  if (!user) {
+    return res.status(401).send("Could not refresh access token");
+  }
+
+  const accessToken = signAccessToken(user);
+
+  return res.send({ accessToken });
+}
