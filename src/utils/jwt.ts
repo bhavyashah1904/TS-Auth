@@ -6,7 +6,7 @@ export function signJWT(
     keyName : "accessTokenPrivateKey" | "refreshTokenPrivateKey",
     options ?: jwt.SignOptions | undefined
 ){
-    //to decode the base64encoded keys use Buffer.from
+    //to decode the base64encoded keys provided from .env  use Buffer.from
     const signingKey = Buffer.from(config.get<string>(keyName), 'base64').toString('ascii')
     return jwt.sign(object, signingKey, {
         ...(options && options),

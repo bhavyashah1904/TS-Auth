@@ -92,3 +92,28 @@ use the resetPasswordCode and save the new password
 create a model for session 
 create a jwt.ts util file create two functions signJwt() and verifyJwt()
 create private keys and encode it to base64 save it in .env file
+the access and refresh tokens are saved in the .env file access it in the default.ts file using the custom-environment-variables file
+create a schema for authentication
+create an auth controller 
+create a service to sign and verify tokens and use this service methods in controller
+
+20)Get the currently logged in user
+create a deserializeUser.ts middleware
+//this middleware will take the access token from the authorization header, decode the acces token and verify it and then attach the user to res.locals property
+put this middleware before router in app.ts 
+create the contoller for it and create a route for it 
+make sure to show only the user details and not the password hash and otther details 
+export an array of private fields in user.model so when we sign our jwt these fileds get removed from the user
+go to auth.service import omit from lodash and in the signAccessToken wrap the user.toJson in omit 
+
+21)implement refreshtoken in case our access token expires
+create the refreshAccessTokenHandler
+get the refresh token verify it get the decoded value 
+create findSessionById in auth.service 
+if session is valid sign and return a new access token
+create a route for this
+
+
+22)make sure only logged in user can access certain apis
+EG getting the currentlylogged in user
+create a requireUSer.ts middleware 
